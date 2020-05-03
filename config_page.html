@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Welcome to Axino</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="./assets/css/bootstrap/bootstrap.min.css">
+
+    <!-- jQuery -->
+    <script src="./assets/js/jquery/jquery.min.js"></script>
+    <script src="./assets/js/jquery/popper.min.js"></script>
+
+    <!-- Fonts -->
+     <link rel="stylesheet" href="./assets/css/font-awesome/font_montserrat.css">
+     <link rel="stylesheet" href="./assets/css/font-awesome/font-awesome.min.css">
+
+    <!-- GridStackJS -->
+    <link rel="stylesheet" href="./assets/css/gridstack@0.6.4/gridstack.min.css" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark topbar">
+
+        <img class="navbar-brand" src="./assets/images/axino-visualizer.svg" style="max-height: 55px; margin-left: -30px;">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navb">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navb">
+            <ul class="navbar-nav mr-auto flex-row">  </ul>
+
+            <div class="navbar-nav flex-row"> 
+                <button onclick="export_conf()" class="btn btn-link topbar-btn2"><i class="fa fa-upload"></i>&nbsp; Export</button>
+                <label class="btn btn-link topbar-btn2" for="file-input" id="file-input-label"><i class="fa fa-download"></i>&nbsp; Import</label>
+                <input type="file" id="file-input" accept="text/plain" style="display: none" />
+                <button class="btn btn btn-link topbar-btn2" style="margin-right: 40px;" onclick="populate_auth()" data-toggle="modal" data-target="#authorization"><i class="fa fa-key" id="auth_indicator"></i>&nbsp; Authorization</button>
+            </div>
+    
+            <ul class="navbar-nav flex-row">
+                <li class="topbar-btn1" style="background-color:  #f8f8f8; color: #667;" ><i class="fa fa-cog"></i>&nbsp; Configure</li>
+                <li class="topbar-btn1" onclick="show_dashboard()" ><i class="fa fa-mixcloud"></i>&nbsp; View</li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="bodyContainer">
+            <div class="alert"></div>
+            <button class="btn btn-outline-primary" style="width:100%; padding:5px; margin-top: 20px; margin-bottom:20px" data-toggle="modal" data-target="#add_element"
+                id="add_element_btn"><i class="fa fa-plus-circle"></i>&nbsp; Add Element
+            </button>
+            <div class="grid-stack" id="div_main">
+            </div>
+            <br>
+            <!-- <div class="row" id="graphs_div_conf"> 
+            </div> -->
+        </div>
+        </div>
+    <!-- Add Element Modal -->
+    <div class="modal" id="add_element">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Select Element to Add</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body" style="background: #eee">
+                    <h5>Line charts</h5>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6">
+                            <a href="#">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container"
+                                    onclick="select_graph('line-time-series-default')" data-toggle="modal"
+                                    data-target="#configure_data_source">
+                                    <img class="lazy img-thumbnail"
+                                        data-original="./assets/images/charts/line-time-series-default.png"
+                                        alt="Time series, zoomable"
+                                        src="./assets/images/charts/line-time-series-default.png" style="">
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container"
+                                        onclick="select_graph('column')" data-toggle="modal"
+                                        data-target="#configure_data_source">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/basic-column.png"
+                                            alt="Time series, zoomable"
+                                            src="./assets/images/charts/basic-column.png" style="">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="select_graph('line')" data-toggle="modal"
+                                        data-target="#configure_data_source">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/line-labels-default.png"
+                                            alt="Time series, zoomable"
+                                            src="./assets/images/charts/line-labels-default.png" style="">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <h5>Guages</h5>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="select_graph('gauge-speedometer-default')" data-toggle="modal"
+                                        data-target="#configure_data_source">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/gauge-speedometer-default.png"
+                                            alt="Guage series"
+                                            src="./assets/images/charts/gauge-speedometer-default.png" style="">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="select_graph('gauge-solid-default')" data-toggle="modal"
+                                        data-target="#configure_data_source">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/gauge-solid-default.png"
+                                            alt="Solid Guage" src="./assets/images/charts/gauge-solid-default.png"
+                                            style="">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="select_graph('gauge-activity-default')" data-toggle="modal"
+                                        data-target="#configure_data_source">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/gauge-activity-default.png"
+                                            alt="Time series, zoomable"
+                                            src="./assets/images/charts/gauge-activity-default.png" style="">
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <h5>Device Controls</h5>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="configure_device_control('slider-control')" data-toggle="modal"
+                                    data-target="#configure_device_control">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/slider-control.png"
+                                            alt="Slider Controls"
+                                            src="./assets/images/charts/slider-control.png"
+                                            >
+                                            <!-- <input type="range" name="test" class="custom-range"> -->
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 demo">
+                            <a href="#">
+                                <div class="demo-container">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 image-container" onclick="configure_device_control('toogle-switch')" data-toggle="modal"
+                                    data-target="#configure_device_control">
+                                        <img class="lazy img-thumbnail"
+                                            data-original="./assets/images/charts/toogle-switch.png"
+                                            alt="Toogle Switch"
+                                            src="./assets/images/charts/toogle-switch.png"
+                                            >
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Authorization Modal -->
+    <div class="modal" id="authorization">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Authorization</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="projectId">Project ID:</label>
+                            <input type="projectId" class="form-control" id="projectId"
+                                placeholder="Enter Project ID" name="projectId">
+                        </div>
+                        <div class="form-group">
+                            <label for="token">Access Token:</label>
+                            <input type="password" class="form-control" id="token" placeholder="Enter Access Token" name="token">
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button onclick="connect()" class="btn btn-normal btn-block" data-dismiss="modal">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Configure data Source Modal -->
+    <div class="modal" id="configure_data_source">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Configure Data Source</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <form  id="configured_data_form">
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                            <div class="form-group row" id="source_layers">
+                                    <input type="text" class="form-control" id="graphType" name="graphType" hidden>
+                                <div class="col-md-11">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="topic_id">Topic ID:</label>
+                                            <input type="text" class="form-control" id="topicID_1" name="topicID_1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="keyToPlot">Key:</label>
+                                            <input type="text" class="form-control" id="keyToPlot_1" name="keyToPlot_1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="multiplier">Multiplier:</label>
+                                            <input type="text" class="form-control" id="multiplier_1" name="multiplier_1">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button onclick="add_layer()" type="button" id="add_source_btn" class="btn btn-outline-primary btn-block">Add Source</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="graphTitle">Title:</label>
+                                            <input type="text" name="graphTitle" class="form-control" id="graphTitle">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="no_of_points">Number of Points:</label>
+                                            <select id="no_of_points" class="form-control" name="no_of_points">
+                                                <option value="1">1</option>
+                                                <option value="10">10</option>
+                                                <option value="20">20</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                                <option value="1000">1000</option>
+                                            </select>
+                                        </div>
+                                        <!-- <div class="col-md-3">
+                                            <label for="graphSize">view:</label>
+                                            <select id="graphSize" class="form-control" name="graphSize">
+                                                <option value="col-md-3">1x1</option>
+                                                <option value="col-md-6">1x2</option>
+                                                <option value="col-md-9">1x3</option>
+                                                <option value="col-md-12">1x4</option>
+                                            </select>
+                                        </div> -->
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <!-- <button onclick="save_graph_conf()" class="btn btn-normal btn-block" data-dismiss="modal">Save</button> -->
+                        <input onclick="save_graph_conf()" type="button" value="Save" id="save_graph_button" class="btn btn-normal btn-block" />
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+        <!-- Configure Device Countrol Modal -->
+    <div class="modal" id="configure_device_control">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Configure Device Countrol</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <form  id="configure_device_form">
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <input type="text" class="form-control" id="type" name="type" hidden>
+                            <div class="form-group row" id="source_layers">
+                                <div class="col-md-12">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="topic_id">Topic ID:</label>
+                                            <input type="topic_id" class="form-control" id="device_control_topic_id" name="device_control_topic_id">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="keyToPlot">Key:</label>
+                                            <input type="keyToPlot" class="form-control" id="device_control_key" name="device_control_key">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="graph_title">Min:</label>
+                                            <input type="text" name="device_control_min_val" id="device_control_min_val" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="size">Max:</label>
+                                            <input type="text" name="device_control_max_val" id="device_control_max_val" class="form-control">
+
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="size">Multiplier:</label>
+                                            <input type="text" class="form-control" name="device_control_multiplier" id="device_control_multiplier">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label for="device_control_title">Title:</label>
+                                            <input type="text" name="device_control_title" class="form-control" id="device_control_title">
+                                        </div>
+                                        <!-- <div class="col-md-6">
+                                            <label for="size">view:</label>
+                                            <select id="device_control_size" class="form-control" name="device_control_size">
+                                                <option value="col-md-3">1x1</option>
+                                                <option value="col-md-6">1x2</option>
+                                                <option value="col-md-9">1x3</option>
+                                                <option value="col-md-12">1x4</option>
+                                            </select>
+
+                                        </div> -->
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </form>
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button onclick="save_device_conf()" id="save_conf_button" class="btn btn-normal btn-block" data-dismiss="modal">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+<!-- Highcharts -->
+<script src="./assets/js/highcharts/highcharts.js"></script>
+<script src="./assets/js/highcharts/highcharts-more.js"></script>
+<script src="./assets/js/highcharts/modules/series-label.js"></script>
+<script src="./assets/js/highcharts/modules/exporting.js"></script>
+<script src="./assets/js/highcharts/modules/export-data.js"></script>
+<script src="./assets/js/highcharts/modules/accessibility.js"></script>
+<script src="./assets/js/highcharts/modules/solid-gauge.js"></script>
+
+
+
+<!-- jQuery -->
+<script src="./assets/js/jquery/jquery-3.4.1.js"></script>
+
+<!-- GridStackJS -->
+<script src="./assets/js/gridstack@0.6.4/gridstack.all.js"></script>
+
+<!-- Bootstrap -->
+<script src="./assets/js/bootstrap/bootstrap.min.js"></script>
+
+<!-- Custom Scripts -->
+<script src="./assets/js/encode.js"></script>
+<script src="./assets/js/script.js"></script>
+<script src="./assets/js/conf.js"></script>
+
+<!-- graphs and charts js --->
+<script src="./assets/js/charts.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if (!localStorage.getItem('token')) {
+            $("#add_element_btn").prop("disabled", true);
+            $('#authorization').modal('show');
+            $('#auth_indicator').attr('style','color:red');
+        }
+        else if (localStorage.getItem('configured')) {
+            $('#auth_indicator').attr('style','color:green');
+            all_devices = JSON.parse(localStorage.getItem('devices'));
+            first_device_id = all_devices[0].device_id;
+
+            device_conf = JSON.parse(localStorage.getItem('device_conf'));
+            device_conf.forEach(conf=>{
+                add_graph(conf,first_device_id,'configuration');
+            })
+            
+        }
+        else{
+            $('#auth_indicator').attr('style','color:green');
+        }
+
+        $('.grid-stack').gridstack();
+        Highcharts.charts.forEach(chart=>{
+            chart.reflow();
+            try{
+                function noop(){}
+                chart['left_'+chart.id].destroy();
+                chart['right_'+chart.id].destroy();
+                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+            }
+            catch(error){
+                console.log(error);
+            }
+        });
+    });
+
+</script>
+
+</html>

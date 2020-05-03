@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Welcome to Sciflair</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="./assets/css/bootstrap/bootstrap.min.css">
+
+    <!-- jQuery -->
+    <script src="./assets/js/jquery/jquery.min.js"></script>
+    <script src="./assets/js/jquery/popper.min.js"></script>
+
+    <!-- Fonts -->
+     <link rel="stylesheet" href="./assets/css/font-awesome/font_montserrat.css">
+     <link rel="stylesheet" href="./assets/css/font-awesome/font-awesome.min.css">
+
+    <!-- GridStackJS -->
+    <link rel="stylesheet" href="./assets/css/gridstack@0.6.4/gridstack.min.css" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="./assets/css/style.css">    
+</head>
+
+<body>
+    <!-- Topbar -->
+    <nav class="navbar navbar-expand-md navbar-dark topbar">
+                  
+      <img class="navbar-brand" src="./assets/images/axino-visualizer.svg" style="max-height: 55px; margin-left: -30px;">
+
+      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navb">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" style="list-style: none;" id="navb">
+        <ul class="navbar-nav mr-auto flex-row">  </ul>
+
+        <ul class="navbar-nav flex-row">
+            <li class="topbar-btn1" onclick="configure()"  ><i class="fa fa-cog"></i>&nbsp; Configure</li> 
+            <li class="topbar-btn1" style="background-color:  #f8f8f8; color: #667;" ><i class="fa fa-mixcloud"></i>&nbsp; View</li>
+        </ul>
+      </div>
+    </nav>
+
+    <button class="btn btn-default" onclick="sidebar_open()" id="open_sidebar_btn" style="display: none;float: left; font-size: 1.2rem; padding-right: 0px;">
+        <i class="fa fa-arrow-circle-right" style="font-size: 1.2rem; color: #aaa;"></i>
+    </button>
+    <div class="row bodyContainer">
+
+    <div class="alert"></div>
+        <!-- Sidebar -->
+    	<div class="col-md-2 no-padding" id="sidebar_div">
+            <div class="sidebar" id="sidebar">
+                <button onclick="get_all_devices_data()" class="btn btn-default" style="font-size: 1.2rem;position:absolute;">
+                    <i class="fa fa-refresh" style="font-size: 1.2rem; color: #aaa;"></i>
+                </button>
+                <button onclick="sidebar_close()" class="btn btn-default btn-block text-right" style="font-size: 1.2rem;">
+                    <i class="fa fa-arrow-circle-left" style="font-size: 1.2rem; color: #aaa;"></i>
+                </button>
+            </div>
+    	</div>
+        
+        <div class="col-md-10 mt-3" id="deviceListing">
+            <div class="grid-stack" id="div_main">
+            </div>
+            <br>
+        </div>
+    </div>
+
+</body>
+<!-- Highcharts -->
+<script src="./assets/js/highcharts/highcharts.js"></script>
+<script src="./assets/js/highcharts/highcharts-more.js"></script>
+<script src="./assets/js/highcharts/modules/series-label.js"></script>
+<script src="./assets/js/highcharts/modules/exporting.js"></script>
+<script src="./assets/js/highcharts/modules/export-data.js"></script>
+<script src="./assets/js/highcharts/modules/accessibility.js"></script>
+<script src="./assets/js/highcharts/modules/solid-gauge.js"></script>
+
+<!-- jQuery -->
+<script src="./assets/js/jquery/jquery-3.4.1.js"></script>
+
+<!-- GridStackJS -->
+<script src="./assets/js/gridstack@0.6.4/gridstack.all.js"></script>
+
+<!-- Bootstrap -->
+<script src="./assets/js/bootstrap/bootstrap.min.js"></script>
+
+<!-- Custom Scripts -->
+<script src="./assets/js/encode.js"></script>
+<script src="./assets/js/script.js"></script>
+<script src="./assets/js/charts.js"></script>
+<script src="./assets/js/humanized_time_span.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        if (!localStorage.getItem('token')) {
+            window.location.href='config_page.html';
+        }
+        else {
+            getDevices(localStorage.getItem("projectId"), localStorage.getItem("token"));
+            $.ajax({
+                url: "https://console.axino.co/api/v2/devices?access_token=" + localStorage.getItem("token"),
+                type: 'GET',
+                success: function (devices) {
+                    localStorage.setItem('devices',JSON.stringify(devices));
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        $('.grid-stack').gridstack();
+        Highcharts.charts.forEach(chart=>{
+            chart.reflow();
+            try{
+                function noop(){}
+                chart['left_'+chart.id].destroy();
+                chart['right_'+chart.id].destroy();
+                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+
+                let g_id = chart.id;
+                let device_id = chart.device_id;
+                let min = chart.min;
+                let max = chart.max;
+                let g_points = chart.g_points;
+                let conf = chart.conf;
+                let data_length = chart.data_length;
+
+                $('.left_'+g_id).click(function() {
+                    min = min-g_points;
+                    max= max-g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min+g_points;
+                        max = max+g_points;
+                    }
+                });
+                $('.right_'+g_id).click(function() {
+                    min = min+g_points;
+                    max = max+g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min-g_points;
+                        max= max-g_points;
+                    }
+                });
+            }
+            catch(error){
+                console.log(error);
+            }
+        });
+
+    });
+    function sidebar_open() {
+        document.getElementById("sidebar").style.display = "block";
+        document.getElementById("open_sidebar_btn").style.display = "none";
+        $('#sidebar_div').removeClass('col-md-1');
+        $('#sidebar_div').addClass('col-md-2');
+        $('#deviceListing').removeClass('col-md-12');
+        $('#deviceListing').addClass('col-md-10');
+        Highcharts.charts.forEach(chart=>{
+            chart.reflow();
+            try{
+                function noop(){}
+                chart['left_'+chart.id].destroy();
+                chart['right_'+chart.id].destroy();
+                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+
+                let g_id = chart.id;
+                let device_id = chart.device_id;
+                let min = chart.min;
+                let max = chart.max;
+                let g_points = chart.g_points;
+                let conf = chart.conf;
+                let data_length = chart.data_length;
+
+                $('.left_'+g_id).click(function() {
+                    min = min-g_points;
+                    max= max-g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min+g_points;
+                        max = max+g_points;
+                    }
+                });
+                $('.right_'+g_id).click(function() {
+                    min = min+g_points;
+                    max = max+g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min-g_points;
+                        max= max-g_points;
+                    }
+                });
+            }
+            catch(error){
+                console.log(error);
+            }
+        });
+    }
+
+    function sidebar_close() {
+        document.getElementById("sidebar").style.display = "none";
+        document.getElementById("open_sidebar_btn").style.display = "block";
+        $('#sidebar_div').removeClass('col-md-2');
+        $('#sidebar_div').addClass('col-md-1');
+        $('#deviceListing').removeClass('col-md-10');
+        $('#deviceListing').addClass('col-md-12');
+        Highcharts.charts.forEach(chart=>{
+            chart.reflow();
+            try{
+                function noop(){}
+                chart['left_'+chart.id].destroy();
+                chart['right_'+chart.id].destroy();
+                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+
+                let g_id = chart.id;
+                let device_id = chart.device_id;
+                let min = chart.min;
+                let max = chart.max;
+                let g_points = chart.g_points;
+                let conf = chart.conf;
+                let data_length = chart.data_length;
+
+                $('.left_'+g_id).click(function() {
+                    min = min-g_points;
+                    max= max-g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min+g_points;
+                        max = max+g_points;
+                    }
+                });
+                $('.right_'+g_id).click(function() {
+                    min = min+g_points;
+                    max = max+g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min-g_points;
+                        max= max-g_points;
+                    }
+                });
+            }
+            catch(error){
+                console.log(error);
+            }
+        });
+    }
+
+    window.addEventListener("resize", displayWindowSize);
+
+    function displayWindowSize(){
+        Highcharts.charts.forEach(chart=>{
+            chart.reflow();
+            try{
+                function noop(){}
+                chart['left_'+chart.id].destroy();
+                chart['right_'+chart.id].destroy();
+                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-135 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-135, noop).addClass('right_'+chart.id).add();
+
+                let g_id = chart.id;
+                let device_id = chart.device_id;
+                let min = chart.min;
+                let max = chart.max;
+                let g_points = chart.g_points;
+                let conf = chart.conf;
+                let data_length = chart.data_length;
+
+                $('.left_'+g_id).click(function() {
+                    min = min-g_points;
+                    max= max-g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min+g_points;
+                        max = max+g_points;
+                    }
+                });
+                $('.right_'+g_id).click(function() {
+                    min = min+g_points;
+                    max = max+g_points;
+                    if(min>=0&&max<=data_length){
+                        update_graph(conf,device_id,min,max);
+                    }
+                    else{
+                        min = min-g_points;
+                        max= max-g_points;
+                    }
+                });
+            }
+            catch(error){
+                console.log(error);
+            }
+        });
+    }
+</script>
+</html>
