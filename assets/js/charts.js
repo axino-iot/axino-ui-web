@@ -1,10 +1,10 @@
 function generateGraph(container,type, time, series,counter,title,size,date,conf=0,device_id=0,date_time) {
-    if(size=='col-md-3'){
+    if(size<=3){
         graph_height = "92%";
         legend_enabled = false;
 
     }
-    else if(size=='col-md-9'){
+    else if(size>3&&size<=9){
         graph_height = "29.5%";
         legend_enabled = true;
     }
@@ -46,7 +46,7 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
                 enabled: legend_enabled
             },
             credits: {
-                enabled: false
+                enabled: true
             },
 
             title: {
@@ -134,11 +134,12 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
         });
     }
     else if(type == 'gauge-speedometer-default'){
-        if(size=='col-md-3'){
+        if(size<=3){
             key_name = "";
             meter_size = "92%";
         }
-        else if(size=='col-md-9'){
+        else if(size>3&&size<=9){
+            key_name = series[0].name;
             meter_size = "29.5%";
         }
         else{
@@ -158,7 +159,7 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
                 text: title
             },
             credits: {
-                enabled: false
+                enabled: true
             },
 
             pane: {
@@ -239,15 +240,16 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
         });
     }
     else if(type == 'gauge-solid-default'){
-        if(size=='col-md-3'){
-            guage_font_size = "150%";
+        if(size<=3){
+            guage_font_size = "100%";
             guage_size = "92%";
         }
-        else if(size=='col-md-9'){
+        else if(size>3&&size<=9){
+            guage_font_size = "150%";
             guage_size = "29.5%";
         }
         else{
-            guage_font_size = "300%";
+            guage_font_size = "200%";
             guage_size = "76%";
         }
         all_chart[counter] = Highcharts.chart(container, {
@@ -311,7 +313,7 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
                 }
             },
             credits: {
-                enabled: false
+                enabled: true
             },
 
             series: [{
@@ -329,11 +331,12 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
     }
     else if(type=="gauge-activity-default"){
  
-        if(size=='col-md-3'){
-            label_position = 40;
+        if(size<=3){
+            label_position = -20;
             label_size = "1em";
         }
-        else if(size=='col-md-9'){
+        else if(size>3&&size<=9){
+            label_position = -20;
             label_size = "2em";
         }
         else{
@@ -396,7 +399,7 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
             background: pane_background
         },
         credits: {
-                enabled: false
+                enabled: true
             },
 
         yAxis: {
@@ -537,6 +540,14 @@ function generateGraph(container,type, time, series,counter,title,size,date,conf
     else{
         console.log(type);
     }
-    Highcharts.charts.forEach(chart=>chart.reflow());
+    
+    // Highcharts.charts.forEach((chart,i)=>{
+    //     if(chart!=undefined){
+    //         chart.reflow()
+    //     }
+    //     else{
+    //          Highcharts.charts.splice(i);
+    //     }
+    // });
     
 }

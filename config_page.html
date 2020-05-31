@@ -212,19 +212,21 @@
                     <form>
                         <div class="form-group">
                             <label for="projectId">Project ID:</label>
-                            <input type="projectId" class="form-control" id="projectId"
+                            <input type="number" class="form-control" id="projectId"
                                 placeholder="Enter Project ID" name="projectId">
+                            <span id="projectID_error" style="color:red"></span>
                         </div>
                         <div class="form-group">
                             <label for="token">Access Token:</label>
                             <input type="password" class="form-control" id="token" placeholder="Enter Access Token" name="token">
+                            <span id="token_error" style="color:red"></span>
                         </div>
                     </form>
                 </div>
 
                 <!-- Modal footer -->
                 <div class="modal-footer">
-                    <button onclick="connect()" class="btn btn-normal btn-block" data-dismiss="modal">Save</button>
+                    <button onclick="connect()" class="btn btn-normal btn-block">Save</button>
                 </div>
 
             </div>
@@ -241,7 +243,7 @@
                     <h4 class="modal-title">Configure Data Source</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <form  id="configured_data_form">
+                <form  id="configured_data_form" onsubmit="save_graph_conf()">
                     <!-- Modal body -->
                     <div class="modal-body">
                             <div class="form-group row" id="source_layers">
@@ -250,15 +252,15 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label for="topic_id">Topic ID:</label>
-                                            <input type="text" class="form-control" id="topicID_1" name="topicID_1">
+                                            <input type="number" class="form-control" id="topicID_1" name="topicID_1" required>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="keyToPlot">Key:</label>
-                                            <input type="text" class="form-control" id="keyToPlot_1" name="keyToPlot_1">
+                                            <input type="text" class="form-control" id="keyToPlot_1" name="keyToPlot_1" required>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="multiplier">Multiplier:</label>
-                                            <input type="text" class="form-control" id="multiplier_1" name="multiplier_1">
+                                            <input type="number" class="form-control" value="1" id="multiplier_1" name="multiplier_1" required>
                                         </div>
                                     </div>
                                 </div>
@@ -293,15 +295,6 @@
                                                 <option value="1000">1000</option>
                                             </select>
                                         </div>
-                                        <!-- <div class="col-md-3">
-                                            <label for="graphSize">view:</label>
-                                            <select id="graphSize" class="form-control" name="graphSize">
-                                                <option value="col-md-3">1x1</option>
-                                                <option value="col-md-6">1x2</option>
-                                                <option value="col-md-9">1x3</option>
-                                                <option value="col-md-12">1x4</option>
-                                            </select>
-                                        </div> -->
                                     </div>
                                 </div>
                             </div>
@@ -309,8 +302,7 @@
 
                     <!-- Modal footer -->
                     <div class="modal-footer">
-                        <!-- <button onclick="save_graph_conf()" class="btn btn-normal btn-block" data-dismiss="modal">Save</button> -->
-                        <input onclick="save_graph_conf()" type="button" value="Save" id="save_graph_button" class="btn btn-normal btn-block" />
+                        <input type="submit" value="Save" id="save_graph_button" class="btn btn-normal btn-block" />
                     </div>
                 </form>
 
@@ -329,7 +321,7 @@
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
 
-                <form  id="configure_device_form">
+                <form  id="configure_device_form" onsubmit="save_device_conf()">
                     <!-- Modal body -->
                     <div class="modal-body">
                         <input type="text" class="form-control" id="type" name="type" hidden>
@@ -338,11 +330,11 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label for="topic_id">Topic ID:</label>
-                                            <input type="topic_id" class="form-control" id="device_control_topic_id" name="device_control_topic_id">
+                                            <input type="number" class="form-control" id="device_control_topic_id" name="device_control_topic_id" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="keyToPlot">Key:</label>
-                                            <input type="keyToPlot" class="form-control" id="device_control_key" name="device_control_key">
+                                            <input type="text" class="form-control" id="device_control_key" name="device_control_key" required>
                                         </div>
                                     </div>
                                 </div>
@@ -352,16 +344,16 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label for="graph_title">Min:</label>
-                                            <input type="text" name="device_control_min_val" id="device_control_min_val" class="form-control">
+                                            <input type="number" name="device_control_min_val" id="device_control_min_val" class="form-control" required>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="size">Max:</label>
-                                            <input type="text" name="device_control_max_val" id="device_control_max_val" class="form-control">
+                                            <input type="number" name="device_control_max_val" id="device_control_max_val" class="form-control" required>
 
                                         </div>
                                         <div class="col-md-4">
                                             <label for="size">Multiplier:</label>
-                                            <input type="text" class="form-control" name="device_control_multiplier" id="device_control_multiplier">
+                                            <input type="number" class="form-control" name="device_control_multiplier" id="device_control_multiplier" required>
                                         </div>
                                     </div>
                                 </div>
@@ -374,25 +366,15 @@
                                             <label for="device_control_title">Title:</label>
                                             <input type="text" name="device_control_title" class="form-control" id="device_control_title">
                                         </div>
-                                        <!-- <div class="col-md-6">
-                                            <label for="size">view:</label>
-                                            <select id="device_control_size" class="form-control" name="device_control_size">
-                                                <option value="col-md-3">1x1</option>
-                                                <option value="col-md-6">1x2</option>
-                                                <option value="col-md-9">1x3</option>
-                                                <option value="col-md-12">1x4</option>
-                                            </select>
-
-                                        </div> -->
                                     </div>
                                 </div>
                             </div>
                     </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <button type="submit" id="save_conf_button" class="btn btn-normal btn-block">Save</button>
+                    </div>
                 </form>
-                <!-- Modal footer -->
-                <div class="modal-footer">
-                    <button onclick="save_device_conf()" id="save_conf_button" class="btn btn-normal btn-block" data-dismiss="modal">Save</button>
-                </div>
 
             </div>
         </div>
@@ -447,7 +429,6 @@
         else{
             $('#auth_indicator').attr('style','color:green');
         }
-
         $('.grid-stack').gridstack();
         Highcharts.charts.forEach(chart=>{
             chart.reflow();

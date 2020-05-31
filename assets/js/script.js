@@ -1,93 +1,164 @@
-
+slider_waiting_event = false;
+toggler_waiting_event = false;
 all_chart = [];
 
-setInterval(function(){
-    if (localStorage.getItem('token')&&localStorage.getItem('configured')) {
-        get_all_devices_data();
-    }
-} , 60000);
-
 function getDeviceData(id) {
-    if(localStorage.getItem('configured')){
-        device_conf = JSON.parse(localStorage.getItem('device_conf'));
-        $('#graphs_div_conf').html('');
-        device_conf.forEach(conf=>{
-            add_graph(conf,id,'view');
-        });
+    try{
+        if(localStorage.getItem('configured')){
+            device_conf = JSON.parse(localStorage.getItem('device_conf'));
+            $('#graphs_div_conf').html('');
+            $('.grid-stack').html('');
+            device_conf.forEach(conf=>{
+                add_graph(conf,id,'view');
+            });
+        }
+        get_latest_data(id);
+        get_latest_downlinks(id);
     }
-    get_latest_data(id);
-    get_latest_downlinks(id);
+    catch(error){
+        console.log(error);
+    }
 }
 
 function get_latest_data(id){
-    if(!localStorage.getItem('data_'+id)||JSON.parse(localStorage.getItem('data_'+id)).length == 0){
-        $.ajax({
-            url: "https://console.axino.co/api/v2/uplinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&limit=100",
-            type: 'GET',
-            success: function (data) {
-                if(data.length>0){
-                    data.forEach((entry,i)=>{
-                        data[i].payload = Base64.decode(entry.payload);
-                    });
-                }
-                localStorage.setItem('data_'+id,JSON.stringify(data));
-                
-            },
-            error: function (err) {
-                console.log(err);
-                alert_message('Connection Failed','warning',3000);
-            }
-        });
-    }
-    else{
-        let local_data = JSON.parse(localStorage.getItem('data_'+id));
-        last_message_id = local_data[local_data.length-1].id;
-        $.ajax({
-            url: "https://console.axino.co/api/v2/uplinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&id=~gt~"+last_message_id+"&limit=1000",
-            type: 'GET',
-            success: function (data) {
-                data.forEach(data_obj=>{
-                    data_obj.payload = Base64.decode(data_obj.payload);
-                    local_data.push(data_obj);
-                })
-
-                localStorage.setItem('data_'+id,JSON.stringify(local_data));
-                if(data.length>=1000){
-                    setTimeout(function(){ get_latest_data(id); }, 3000);
-                }
-                else if(localStorage.getItem('configured')&&data.length>0){
-                    if(localStorage.getItem("selected_device")==id){
-                        device_conf = JSON.parse(localStorage.getItem("device_conf"));
-                        device_conf.forEach(conf=>{
-                            if(conf.type=='graph'){
-                                update_graph(conf,id);
-                            }
+    try{
+        if(!localStorage.getItem('data_'+id)||JSON.parse(localStorage.getItem('data_'+id)).length == 0){
+            $.ajax({
+                url: "https://console.axino.co/api/v2/uplinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&limit=100",
+                type: 'GET',
+                success: function (data) {
+                    if(data.length>0){
+                        data.forEach((entry,i)=>{
+                            data[i].payload = Base64.decode(entry.payload);
                         });
                     }
+                    localStorage.setItem('data_'+id,JSON.stringify(data));
+                    
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert_message('Connection Failed','warning',3000);
                 }
-                else{
+            });
+        }
+        else{
+            let local_data = JSON.parse(localStorage.getItem('data_'+id));
+            last_message_id = local_data[local_data.length-1].id;
+            $.ajax({
+                url: "https://console.axino.co/api/v2/uplinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&id=~gt~"+last_message_id+"&limit=1000",
+                type: 'GET',
+                success: function (data) {
+                    data.forEach(data_obj=>{
+                        data_obj.payload = Base64.decode(data_obj.payload);
+                        local_data.push(data_obj);
+                    })
+
+                    localStorage.setItem('data_'+id,JSON.stringify(local_data));
+                    if(data.length>=1000){
+                        setTimeout(function(){ get_latest_data(id); }, 3000);
+                    }
+                    else if(localStorage.getItem('configured')&&data.length>0){
+                        if(localStorage.getItem("selected_device")==id){
+                            device_conf = JSON.parse(localStorage.getItem("device_conf"));
+                            device_conf.forEach(conf=>{
+                                if(conf.type=='graph'){
+                                    update_graph(conf,id);
+                                }
+                            });
+                        }
+                    }
+                    else{
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert_message('Connection Failed','warning',3000);
                 }
-            },
-            error: function (err) {
-                console.log(err);
-                alert_message('Connection Failed','warning',3000);
-            }
-        });
+            });
+        }
+    }
+    catch(error){
+        console.log(error);
     }
 }
 
 function get_latest_downlinks(id){
-    if(!localStorage.getItem('downlinks_'+id)||JSON.parse(localStorage.getItem('downlinks_'+id)).length == 0){
+    try{
+        if(!localStorage.getItem('downlinks_'+id)||JSON.parse(localStorage.getItem('downlinks_'+id)).length == 0){
+            $.ajax({
+                url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+id,
+                type: 'GET',
+                success: function (data) {
+                    if(data.length>0){
+                        data.forEach((entry,i)=>{
+                            data[i].payload = Base64.decode(entry.payload);
+                        });
+                    }
+                    localStorage.setItem('downlinks_'+id,JSON.stringify(data));
+                    
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert_message('Connection Failed','warning',3000);
+                }
+            });
+        }
+        else{
+            $.ajax({
+                url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&limit=1000",
+                type: 'GET',
+                success: function (data) {
+                    let local_data = [];
+                    data.forEach(data_obj=>{
+                        data_obj.payload = Base64.decode(data_obj.payload);
+                        local_data.push(data_obj);
+                    })
+
+                    localStorage.setItem('downlinks_'+id,JSON.stringify(local_data));
+                    if(data.length>=1000){
+                        setTimeout(function(){ get_latest_data(id); }, 3000);
+                    }
+                    if(localStorage.getItem('configured')&&data.length>0){
+                        if(localStorage.getItem("selected_device")==id){
+                            device_conf = JSON.parse(localStorage.getItem("device_conf"));
+                            device_conf.forEach(conf=>{
+                                if(conf.type!='graph'){
+                                    update_graph(conf,id);
+                                }
+                            });
+                        }
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                    alert_message('Connection Failed','warning',3000);
+                    devices = JSON.parse(localStorage.getItem('devices'));
+                    devices.forEach((device,i)=>{
+                        devices[i].is_online = 0;
+                    });
+                    localStorage.setItem('devices',JSON.stringify(devices));
+                }
+            });
+        }
+    }
+    catch(error){
+        console.log(error);
+    }
+}
+
+function check_downlink_status(device_id,topic,callback){
+    try{
         $.ajax({
-            url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+id,
+            url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+device_id,
             type: 'GET',
             success: function (data) {
                 if(data.length>0){
                     data.forEach((entry,i)=>{
-                        data[i].payload = Base64.decode(entry.payload);
+                        if(entry.topic==topic){
+                            return callback(entry);
+                        }
                     });
                 }
-                localStorage.setItem('downlinks_'+id,JSON.stringify(data));
                 
             },
             error: function (err) {
@@ -96,42 +167,8 @@ function get_latest_downlinks(id){
             }
         });
     }
-    else{
-        $.ajax({
-            url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+id+"&limit=1000",
-            type: 'GET',
-            success: function (data) {
-                let local_data = [];
-                data.forEach(data_obj=>{
-                    data_obj.payload = Base64.decode(data_obj.payload);
-                    local_data.push(data_obj);
-                })
-
-                localStorage.setItem('downlinks_'+id,JSON.stringify(local_data));
-                if(data.length>=1000){
-                    setTimeout(function(){ get_latest_data(id); }, 3000);
-                }
-                if(localStorage.getItem('configured')&&data.length>0){
-                    if(localStorage.getItem("selected_device")==id){
-                        device_conf = JSON.parse(localStorage.getItem("device_conf"));
-                        device_conf.forEach(conf=>{
-                            if(conf.type!='graph'){
-                                update_graph(conf,id);
-                            }
-                        });
-                    }
-                }
-            },
-            error: function (err) {
-                console.log(err);
-                alert_message('Connection Failed','warning',3000);
-                devices = JSON.parse(localStorage.getItem('devices'));
-                devices.forEach((device,i)=>{
-                    devices[i].is_online = 0;
-                });
-                localStorage.setItem('devices',JSON.stringify(devices));
-            }
-        });
+    catch(error){
+        console.log(error);
     }
 }
 
@@ -146,24 +183,43 @@ custom_date_formats = {
   ]
 }    
 
-function getDevices(projectID, token) {
+function getDevices(){
     $.ajax({
         url: "https://console.axino.co/api/v2/devices?access_token=" + localStorage.getItem('token'),
         type: 'GET',
         success: function (devices) {
             localStorage.setItem('devices',JSON.stringify(devices));
+            update_sidebar(false);
         },
         error: function (err) {
             console.log(err);
-            alert_message('Unable to find new data','warning',3000);
+            alert_message('Unable to find devices','info',3000);
         }
     });
-    devices = localStorage.getItem('devices');
-    devices = JSON.parse(devices);
+}
+
+function update_devices_and_data(){
+    get_all_devices_data();
+    getDevices();
+}
+
+function update_sidebar(getData){
+    devices = JSON.parse(localStorage.getItem('devices'));
+    $('#sidebar').html('');
+    $('#sidebar').append(`<button onclick="update_devices_and_data()" class="btn btn-default" style="font-size: 1.2rem;position:absolute;">
+        <i class="fa fa-refresh" style="font-size: 1.2rem; color: #aaa;"></i>
+        </button>
+        <button onclick="sidebar_close()" class="btn btn-default btn-block text-right" style="font-size: 1.2rem;">
+            <i class="fa fa-arrow-circle-left" style="font-size: 1.2rem; color: #aaa;"></i>
+        </button>
+    `);
     devices.forEach(device => {
-    last_seen =  humanized_time_span(device.last_seen, new Date(), custom_date_formats);
+        last_seen =  humanized_time_span(device.last_seen, new Date(), custom_date_formats);
         if(device.device_id==localStorage.getItem('selected_device')){
-            getDeviceData(device.device_id);
+            if(getData){
+                getDeviceData(device.device_id);
+            }
+
             $('#sidebar').append($('<a>', {class:'active',text:device.name,id:device.device_id,onclick:'select_device('+device.device_id+')',style:'border-bottom:1px solid rgba(0,0,0,.125)'}));
             $('#'+device.device_id).append($('<br>',{}));
             if(device.is_online==1){
@@ -205,30 +261,48 @@ function configure(){
 }
 
 function show_dashboard(){
+    update_grid_state();
     window.location.href = 'index.html';
 }
 
 //********************* For Authorization **********************//
 function connect() {
-    localStorage.clear();
-    $.ajax({
-        url: "https://console.axino.co/api/v2/devices?access_token=" + $("#token").val(),
-        type: 'GET',
-        success: function (devices) {
-            localStorage.setItem("token", $("#token").val());
-            localStorage.setItem("projectId", $("#projectId").val());
-            localStorage.setItem('devices',JSON.stringify(devices));
-            localStorage.setItem('selected_device',devices[0].device_id);
-            $("#add_element_btn").removeAttr("disabled");
-            get_all_devices_data();
-            $('#auth_indicator').attr('style','color:green');
-            alert_message('Successfully Connected','success',3000);
-        },
-        error: function (err) {
-            console.log(err);
-            alert_message('Unable to connect please verify your Access Token','danger',3000);
-        }
-    });
+
+    if($("#projectId").val()==""){
+        $('#token_error').html('');
+        $('#projectID_error').html('Please enter Project ID');
+    }
+    else if($("#token").val()==""){
+        $('#projectID_error').html('');
+        $('#token_error').html('Please enter Access Token');
+    }
+    else{
+        $('#token_error').html('');
+        $('#projectID_error').html('');
+        localStorage.clear();
+
+        $('#graphs_div_conf').html('');
+        $('.grid-stack').html('');
+        $('#authorization').modal('hide');
+        $.ajax({
+            url: "https://console.axino.co/api/v2/devices?access_token=" + $("#token").val(),
+            type: 'GET',
+            success: function (devices) {
+                localStorage.setItem("token", $("#token").val());
+                localStorage.setItem("projectId", $("#projectId").val());
+                localStorage.setItem('devices',JSON.stringify(devices));
+                localStorage.setItem('selected_device',devices[0].device_id);
+                $("#add_element_btn").removeAttr("disabled");
+                get_all_devices_data();
+                $('#auth_indicator').attr('style','color:green');
+                alert_message('Successfully Connected','success',3000);
+            },
+            error: function (err) {
+                console.log(err);
+                alert_message('Unable to connect please verify your Access Token','danger',3000);
+            }
+        });
+    }
 }
 
 function get_all_devices_data(){
@@ -271,14 +345,19 @@ function add_graph(conf,device_id,page){
         date_time = {};
         series = [];
 
-
         conf.keyToPlot.forEach((conf_keyToPlot,i)=>{
             sensor_values = [];
             if(local_data.length>0){
                 while(data.length < number_of_points){
                     temp = local_data.pop();
-                    if(temp.topic==conf.topicID[i]){
-                        data.push(temp);
+                    if(!temp){
+                        console.log('temp is empty');
+                        break;
+                    }
+                    else{
+                        if(temp.topic==conf.topicID[i]){
+                            data.push(temp);
+                        }
                     }
                 }
             }
@@ -316,6 +395,7 @@ function add_graph(conf,device_id,page){
         else{
             var monthDateYear = '-'
         }
+        conf.graphSize = conf.width;
         generateGraph('graph_'+conf.graphID,conf.graphType,time,series,conf.graphID,conf.graphTitle,conf.graphSize,monthDateYear,conf,device_id,date_time);
     }else{
         let current_value = 0;
@@ -385,7 +465,7 @@ function add_graph(conf,device_id,page){
                             <div class="row">
                             
                             <div class="col-md-12" id="graph_`+conf.divID+`">
-                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
+                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" oninput="update_value(this)" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
                                 </div>
                             </div>
 
@@ -414,7 +494,7 @@ function add_graph(conf,device_id,page){
                             <div class="row">
                             
                             <div class="col-md-12" id="graph_`+conf.divID+`">
-                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
+                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" oninput="update_value(this)" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
                                 </div>
                             </div>
 
@@ -429,7 +509,8 @@ function add_graph(conf,device_id,page){
                 }
             }
         }
-        else{
+        else
+        {
             if(conf.type=="toogle-switch"){
                 $('#div_main').append(`
                 <div class="grid-stack-item" data-gs-no-resize="true" data-gs-no-move="true" id="`+conf.divID+`" data-gs-x="`+conf.x+`" data-gs-y="`+conf.y+`" data-gs-width="`+conf.width+`" data-gs-height="`+conf.height+`">
@@ -476,7 +557,7 @@ function add_graph(conf,device_id,page){
                             <div class="row">
                             
                             <div class="col-md-12" id="graph_`+conf.divID+`">
-                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
+                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" oninput="update_value(this)" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
                                 </div>
                             </div>
 
@@ -502,7 +583,7 @@ function add_graph(conf,device_id,page){
                             <div class="row">
                             
                             <div class="col-md-12" id="graph_`+conf.divID+`">
-                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
+                                    <input type="range" value="`+current_value+`" min="`+conf.device_control_min_val+`" max="`+conf.device_control_max_val+`" class="slider2" oninput="update_value(this)" onchange="slider_changed(`+device_id+`,`+conf.device_control_topic_id+`,this,`+conf.device_control_multiplier+`)" id="`+conf.device_control_key+`">
                                 </div>
                             </div>
 
@@ -520,29 +601,38 @@ function add_graph(conf,device_id,page){
     }
 }
 function toogle_buttion_clicked(device_id,topic,e){
-    //$("#"+e.id).parent().addClass("underprocess");
 
+    toggler_waiting_event = true;
+    //$("#"+e.id).parent().addClass("underprocess");
     $("#"+e.id).nextUntil('.span').addClass("underprocess");
+    $("#"+e.id).nextUntil('.span').removeClass("processfailed");
     toogle_last_click = new Date();
     toogle_last_click = toogle_last_click.getTime();
     var output = document.getElementById(e.id+"_value");
     if(e.checked){
         new_value = e.id+'=1';
         output.innerHTML = 1;
+        toggle_value = 1;
     }
     else{
         new_value = e.id+'=0';
         output.innerHTML = 0;
+        toggle_value = 0;
     }
     setTimeout(function(){
         let now_time = new Date();
         now_time = now_time.getTime();
-        let interval = toogle_last_click + (5000);
+        let interval = toogle_last_click + (3000);
         if(interval<=now_time){
+
+            output.innerHTML = toggle_value+`&nbsp;<div class="spinner-border text-warning" role="status"></div>`;
+            
             downlinks = JSON.parse(localStorage.getItem('downlinks_'+device_id));
             downlinks.forEach((downlink,i)=>{
                 if(downlink.topic==topic){
                     downlinks[i].payload = new_value;
+                    downlinks[i].status = 0;
+                    downlinks[i].delivered_at = null;
                 }
             });
             localStorage.setItem('downlinks_'+device_id,JSON.stringify(downlinks));
@@ -554,12 +644,45 @@ function toogle_buttion_clicked(device_id,topic,e){
                     "topic": topic,
                 },
                 success: function (data) {
+                    toggler_waiting_event = false;
+                    console.log('message qued');
+                    console.log('waiting for next state..');
                     if(data == "message qued"){
-                        setTimeout(function(){ get_latest_downlinks(device_id); }, 10000);
+                        setTimeout(function(){ 
+                            check_downlink_status(device_id,topic,function(result){
+                                
+                                console.log('message status '+result.status);
+
+                                downlinks = JSON.parse(localStorage.getItem('downlinks_'+device_id));
+                                downlinks.forEach((downlink,i)=>{
+                                    if(downlink.topic==topic){
+                                        downlinks[i].payload = new_value;
+                                        downlinks[i].status = result.status;
+                                        downlinks[i].delivered_at = result.delivered_at;
+                                        if(result.status==0){
+                                            $("#"+e.id).nextUntil('.span').addClass("underprocess");
+                                            output.innerHTML = toggle_value;
+                                        }
+                                        else if(result.status==1){
+                                            $("#"+e.id).nextUntil('.span').removeClass("underprocess");
+                                            $("#"+e.id).nextUntil('.span').removeClass("processfailed");
+                                            output.innerHTML = toggle_value;
+                                        }
+                                        else{
+                                            $("#"+e.id).nextUntil('.span').addClass("processfailed");
+                                            output.innerHTML = toggle_value+`<button onclick="toogle_buttion_clicked(`+device_id+`,`+topic+`,`+e.id+`)" class="btn btn-default" style="font-size: 1;">
+                                                <i class="fa fa-refresh" style="font-size: 1rem; color: #aaa;"></i>
+                                            </button>`;
+                                        }
+                                    }
+                                });
+                                localStorage.setItem('downlinks_'+device_id,JSON.stringify(downlinks));
+                            });
+                        }, 20000);
                     }
-                    else{
-                        $("#"+e.id).parent().addClass("underprocess");
-                    }
+                    // else{
+                    //     $("#"+e.id).parent().addClass("underprocess");
+                    // }
                 },
                 error: function (err) {
                     console.log(err);
@@ -567,29 +690,42 @@ function toogle_buttion_clicked(device_id,topic,e){
                 }
             });
         }
-    },5000);
+    },3000);
 }
 
 function slider_changed(device_id,topic,e,multiplier){
+    slider_waiting_event = true;
     $("#"+e.id).addClass("underprocess");
+    $("#"+e.id).removeClass("processfailed");
     slider_last_click = new Date();
     slider_last_click = slider_last_click.getTime();
     var slider = document.getElementById(e.id);
     var output = document.getElementById(e.id+"_value");
-    output.innerHTML = slider.value;
+    // output.innerHTML = slider.value;
+    console.log('underprocess added, processfailed removed, slider.value='+slider.value)
     setTimeout(function(){
         let now_time = new Date();
         now_time = now_time.getTime();
-        let interval = slider_last_click + (5000);
-
+        let interval = slider_last_click + (3000);
+        console.log('setTimeout called');
         if(interval<=now_time){
+
+            console.log('interval<=now_time');
             new_value = e.id+'='+(slider.value*multiplier);
+
+            output.innerHTML = slider.value+`&nbsp;<div class="spinner-border text-warning" role="status"></div>`;
+
             downlinks = JSON.parse(localStorage.getItem('downlinks_'+device_id));
             downlinks.forEach((downlink,i)=>{
                 if(downlink.topic==topic){
-                    downlinks[i].payload =  new_value;
+                    downlinks[i].payload = new_value;
+                    downlinks[i].status = 0;
+                    downlinks[i].delivered_at = null;
                 }
             });
+
+            console.log('updated payload='+new_value+',status='+0+' and delivered_at='+null+' downlinks_'+device_id);
+
             localStorage.setItem('downlinks_'+device_id,JSON.stringify(downlinks));
             $.ajax({
                 url: "https://console.axino.co/api/v2/downlinks?access_token="+localStorage.getItem('token')+"&device_id="+device_id,
@@ -599,12 +735,45 @@ function slider_changed(device_id,topic,e,multiplier){
                     "topic": topic,
                 },
                 success: function (data) {
-                    if(data != "message qued"){
-                        $("#"+e.id).attr("disabled", false);
+                    slider_waiting_event = false;
+                    console.log('message qued');
+                    console.log('waiting for next state..');
+                    if(data == "message qued"){
+                        //$("#"+e.id).attr("disabled", false);
+                        setTimeout(function(){ 
+                            console.log('fetching new state..');
+                            check_downlink_status(device_id,topic,function(result){
+                                console.log('new state message status '+result.status);
+                                downlinks = JSON.parse(localStorage.getItem('downlinks_'+device_id));
+                                downlinks.forEach((downlink,i)=>{
+                                    if(downlink.topic==topic){
+                                        downlinks[i].payload = new_value;
+                                        downlinks[i].status = result.status;
+                                        downlinks[i].delivered_at = result.delivered_at;
+                                        if(result.status==0){
+                                            $("#"+e.id).addClass("underprocess");
+                                            output.innerHTML = slider.value;
+                                        }
+                                        else if(result.status==1){
+                                            $("#"+e.id).removeClass("underprocess");
+                                            $("#"+e.id).removeClass("processfailed");
+                                            output.innerHTML = slider.value;
+                                        }
+                                        else{
+                                            $("#"+e.id).addClass("processfailed");
+                                            output.innerHTML = slider.value+`<button onclick="slider_changed(`+device_id+`,`+topic+`,`+e.id+`,`+multiplier+`)" class="btn btn-default" style="font-size: 1;">
+                                                <i class="fa fa-refresh" style="font-size: 1rem; color: #aaa;"></i>
+                                            </button>`;
+                                        }
+                                    }
+                                });
+                                localStorage.setItem('downlinks_'+device_id,JSON.stringify(downlinks));
+                            });
+                        }, 20000);
                     }
-                    else{
-                        setTimeout(function(){ get_latest_downlinks(device_id); }, 10000);
-                    }
+                    // else{
+                    //     setTimeout(function(){ get_latest_downlinks(device_id); }, 10000);
+                    // }
                 },
                 error: function (err) {
                     console.log(err);
@@ -612,19 +781,38 @@ function slider_changed(device_id,topic,e,multiplier){
                 }
             });
         }
-    },5000);
+    },3000);
 }
 
 
-function update_graph(conf,device_id,min=0,max=0){
+function update_graph(conf,device_id,min=0,max=0,update=true){
+
+    let local_data = JSON.parse(localStorage.getItem('data_'+device_id));
+    if(update){
+
+        if(all_chart[conf.graphID]!=undefined){
+
+            all_chart[conf.graphID].data_length = local_data.length;
+
+            Highcharts.charts.forEach(chart=>{
+                try{
+                    regenerate_graph_buttons(chart);
+                }
+                catch(error){
+                    console.log(error);
+                }
+            });
+        }
+    }
+
     if(conf.type=='graph'){
-        let local_data = JSON.parse(localStorage.getItem('data_'+device_id));
 
         min_limit = min || local_data.length - parseInt(conf.no_of_points);
         max_limit = max || local_data.length;
         time = [];
         date_time = {};
         series = [];
+
 
         if(min==0){
             data = [];
@@ -691,9 +879,6 @@ function update_graph(conf,device_id,min=0,max=0){
                 });
             });
         }
-
-
-        
         if(series[0].data.length>0){
            if(local_data.length!=0){
                 var monthDateYear = new Date(data[data.length-1].received_at).toLocaleDateString('en-GB', {  
@@ -768,20 +953,30 @@ function update_graph(conf,device_id,min=0,max=0){
                         current_value = downlink.payload;
                         current_value = current_value.split('=')[1];
                         current_value = current_value/conf.device_control_multiplier;
-                        if(downlink.status){
+                        if(downlink.status==1){
                             if(conf.type=="toogle-switch"){
                                $("#"+conf.device_control_key).nextUntil('.span').removeClass("underprocess");
+                               $("#"+conf.device_control_key).nextUntil('.span').removeClass("processfailed");
                             }
                             else{
                                 $("#"+conf.device_control_key).removeClass("underprocess");
+                                $("#"+conf.device_control_key).removeClass("processfailed");
                             }
                         }
-                        else{
+                        else if(downlink.status==0){
                             if(conf.type=="toogle-switch"){
                                $("#"+conf.device_control_key).nextUntil('.span').addClass("underprocess");
                             }
                             else{
                                 $("#"+conf.device_control_key).addClass("underprocess");
+                            }
+                        }
+                        else{
+                            if(conf.type=="toogle-switch"){
+                               $("#"+conf.device_control_key).nextUntil('.span').addClass("processfailed");
+                            }
+                            else{
+                                $("#"+conf.device_control_key).addClass("processfailed");
                             }
                         }
                     }
@@ -818,40 +1013,90 @@ function alert_message(text,type='info',time=0){
 let grid_stack = $('.grid-stack');
 
 grid_stack.on('change', function (event, items) {
-    device_conf = JSON.parse(localStorage.getItem('device_conf'));
-    device_conf.forEach(function(conf,i){
-        
-        if(conf.type == 'graph'){
-            if(conf.graphID==items[0].el[0].id){
-                device_conf[i].x = items[0].x;
-                device_conf[i].y = items[0].y;
-                device_conf[i].width = items[0].width;
-                device_conf[i].height = items[0].height;
-            }
-        }
-        else{
+    try{
+        if(items!=undefined){
+            device_conf = JSON.parse(localStorage.getItem('device_conf'));
+            device_conf.forEach(function(conf,i){
+                items.forEach(item=>{
+                    if(conf.type == 'graph'){
+                        if(conf.graphID==item.el[0].id){
+                            device_conf[i].x = item.x;
+                            device_conf[i].y = item.y;
+                            device_conf[i].width = item.width;
+                            device_conf[i].height = item.height;
+                        }
+                    }
+                    else{
 
-                console.log(items[0]);
-            if(conf.divID==items[0].el[0].id){
-                device_conf[i].x = items[0].x;
-                device_conf[i].y = items[0].y;
-                device_conf[i].width = items[0].width;
-                device_conf[i].height = items[0].height;
-            }
+                        if(conf.divID==item.el[0].id){
+                            device_conf[i].x = item.x;
+                            device_conf[i].y = item.y;
+                            device_conf[i].width = item.width;
+                            device_conf[i].height = item.height;
+                        }
+                    }
+                });
+                
+            });
+            Highcharts.charts.forEach(chart=>{
+                try{
+                    chart.reflow();
+                    function noop(){}
+                    chart['left_'+chart.id].destroy();
+                    chart['right_'+chart.id].destroy();
+                    chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+                    chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+                }
+                catch(error){
+                    console.log(error);
+                }
+            });
+            localStorage.setItem('device_conf',JSON.stringify(device_conf));
         }
-    });
-    Highcharts.charts.forEach(chart=>{
-        chart.reflow();
-        try{
-            function noop(){}
-            chart['left_'+chart.id].destroy();
-            chart['right_'+chart.id].destroy();
-            chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
-            chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
-        }
-        catch(error){
-            console.log(error);
-        }
-    });
-    localStorage.setItem('device_conf',JSON.stringify(device_conf));
+    }
+    catch(err){
+        console.log(err);
+    }
 });
+
+function update_value(e){
+    var slider = document.getElementById(e.id);
+    var output = document.getElementById(e.id+"_value");
+    output.innerHTML = slider.value;
+}
+
+
+function update_grid_state(){
+    if(localStorage.getItem('device_conf')){
+        var items = [];
+
+        $('.grid-stack-item.ui-draggable').each(function () {
+            var $this = $(this);
+            items.push({
+                x: $this.attr('data-gs-x'),
+                y: $this.attr('data-gs-y'),
+                w: $this.attr('data-gs-width'),
+                h: $this.attr('data-gs-height'),
+                id: $this.attr('id')
+            });
+        });
+        device_conf = JSON.parse(localStorage.getItem('device_conf'));
+        device_conf.forEach((item,i)=>{
+            items.forEach(itm=>{
+                if(item.divID==itm.id){
+                    device_conf[i].x = parseInt(itm.x);
+                    device_conf[i].y = parseInt(itm.y);
+                    device_conf[i].w = parseInt(itm.w);
+                    device_conf[i].h = parseInt(itm.h);
+                }
+                if(item.graphID==itm.id){
+                    device_conf[i].x = parseInt(itm.x);
+                    device_conf[i].y = parseInt(itm.y);
+                    device_conf[i].w = parseInt(itm.w);
+                    device_conf[i].h = parseInt(itm.h);
+                }
+            })
+        })
+        localStorage.setItem('device_conf',JSON.stringify(device_conf));
+    }
+}

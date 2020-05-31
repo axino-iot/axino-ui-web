@@ -107,12 +107,19 @@
                 //$('#graphSize').val(device_conf[i].graphSize);
                 $('#no_of_points').val(device_conf[i].no_of_points);
 
-                $('#save_graph_button').attr('onclick','update_graph_conf('+id+')');
+                $('#configured_data_form').attr('onsubmit','update_graph_conf('+id+')');
                 if(device_conf[i].graphType=='column'||device_conf[i].graphType=='line'||device_conf[i].graphType=='gauge-activity-default'){
                     $("#add_source_btn").attr('disabled',false);
                 }
                 else{
                     $("#add_source_btn").attr('disabled',true);
+                }
+
+                if(device_conf[i].graphType=='column'||device_conf[i].graphType=='line'||device_conf[i].graphType=='line-time-series-default'){
+                    $("#no_of_points").attr('disabled',false);
+                }
+                else{
+                    $("#no_of_points").attr('disabled',true);
                 }
            }
         }
@@ -156,31 +163,46 @@
     function save_graph_conf() {
         var form = document.getElementById( "configured_data_form" );
         var conf = toJSONString_graph( form );
-            graph_id = Math.random();
-            if(!localStorage.getItem("device_conf")){
-                localStorage.setItem('configured',true);
-                device_conf = [];
-                conf.graphID = graph_id;
-                device_conf.push(conf);
-                device_conf = JSON.stringify(device_conf);
-                localStorage.setItem("device_conf", device_conf);
-                $('#configure_data_source').modal('hide');
-                
-                all_devices = JSON.parse(localStorage.getItem('devices'));
-                add_graph(conf,all_devices[0].device_id,'configuration');}
-            else{
-                device_conf = localStorage.getItem("device_conf");
-                device_conf = JSON.parse(device_conf);
-                conf.graphID = graph_id;
-                device_conf.push(conf);
-                device_conf = JSON.stringify(device_conf);
-                localStorage.setItem("device_conf", device_conf);
-                $('#configure_data_source').modal('hide');
+        graph_id = Math.random();
+        if(!localStorage.getItem("device_conf")){
+            localStorage.setItem('configured',true);
+            device_conf = [];
+            conf.graphID = graph_id;
+            device_conf.push(conf);
+            device_conf = JSON.stringify(device_conf);
+            localStorage.setItem("device_conf", device_conf);
+            $('#configure_data_source').modal('hide');
+            
+            all_devices = JSON.parse(localStorage.getItem('devices'));
+            add_graph(conf,all_devices[0].device_id,'configuration');
+            location.reload();
+        }
+        else{
+            device_conf = localStorage.getItem("device_conf");
+            device_conf = JSON.parse(device_conf);
+            conf.graphID = graph_id;
 
-                all_devices = JSON.parse(localStorage.getItem('devices'));
-                //add_graph(conf,all_devices[0].device_id,'configuration');
-                location.reload();
-            }
+            // y_temp = device_conf[device_conf.length-1].y;
+            // height_temp = device_conf[device_conf.length-1].height;
+
+            last_yh = 0;
+            device_conf.forEach((item,i)=>{
+                device_conf[i].y = device_conf[i].y+conf.height;
+                // if((item.y+item.height)>last_yh){
+                //     last_yh = item.y+item.height;
+                //     conf.y = last_yh;
+                // }
+            });
+
+            device_conf.push(conf);
+            device_conf = JSON.stringify(device_conf);
+            localStorage.setItem("device_conf", device_conf);
+            $('#configure_data_source').modal('hide');
+
+            all_devices = JSON.parse(localStorage.getItem('devices'));
+            //add_graph(conf,all_devices[0].device_id,'configuration');
+            location.reload();
+        }
     }
 
     function update_graph_conf(id) {
@@ -230,11 +252,13 @@
         device_conf = JSON.parse(device_conf);
         for( var i = 0; i < device_conf.length; i++){ 
            if ( device_conf[i].divID === id) {
+            $('#type').val(device_conf[i].type);
              $('#device_control_topic_id').val(device_conf[i].device_control_topic_id);
              $('#device_control_key').val(device_conf[i].device_control_key);
              $('#device_control_min_val').val(device_conf[i].device_control_min_val);
              $('#device_control_max_val').val(device_conf[i].device_control_max_val);
              $('#device_control_multiplier').val(device_conf[i].device_control_multiplier);
+             $('#device_control_title').val(device_conf[i].device_control_title);
 
              if(device_conf[i].type=="toogle-switch"){
                 $('#device_control_min_val').attr('disabled',true);
@@ -247,7 +271,7 @@
                 $('#device_control_multiplier').attr('disabled',false);
              }
              $('#device_control_size').val(device_conf[i].device_control_size);
-             $('#save_conf_button').attr('onclick','update_device_conf('+id+')');
+             $('#configure_device_form').attr('onsubmit','update_device_conf('+id+')');
            }
         }
         $('#configure_device_control').modal('show');
@@ -278,6 +302,8 @@
         let form = document.getElementById( "configure_device_form" );
         let conf = toJSONString_device( form );
         div_id = Math.random();
+
+        $('#configure_device_control').modal('hide');
         if(!localStorage.getItem("device_conf")){
             localStorage.setItem('configured',true);
             device_conf = [];
@@ -289,18 +315,51 @@
             
             all_devices = JSON.parse(localStorage.getItem('devices'));
             add_graph(conf,all_devices[0].device_id,'configuration');
+            location.reload();
         }
         else{
             device_conf = localStorage.getItem("device_conf");
             device_conf = JSON.parse(device_conf);
             conf.divID = div_id;
-            device_conf.push(conf);
-            device_conf = JSON.stringify(device_conf);
-            localStorage.setItem("device_conf", device_conf);
-            $('#configure_data_source').modal('hide');
 
-            all_devices = JSON.parse(localStorage.getItem('devices'));
-            location.reload();
+            //x_temp = device_conf[device_conf.length-1].x;
+            //width_temp = device_conf[device_conf.length-1].width;
+            // y_temp = device_conf[device_conf.length-1].y;
+            // height_temp = device_conf[device_conf.length-1].height;
+
+            //conf.y = y_temp+height_temp;
+
+            // last_yh = 0;
+            // device_conf.forEach(item=>{
+            //     if((item.y+item.height)>last_yh){
+            //         last_yh = item.y+item.height;
+            //         conf.y = last_yh;
+            //     }
+            // });
+            already_exist = false;
+            last_yh = 0;
+            device_conf.forEach((item,i)=>{
+                if(item.type!='graph'){
+                    if(conf.device_control_key==item.device_control_key||conf.device_control_topic_id==item.device_control_topic_id){
+                        
+                        already_exist = true;
+                    }
+                }
+                device_conf[i].y = device_conf[i].y+conf.height;
+            });
+            if(!already_exist){
+                device_conf.push(conf);
+                device_conf = JSON.stringify(device_conf);
+                localStorage.setItem("device_conf", device_conf);
+                $('#configure_data_source').modal('hide');
+
+                location.reload();
+            }
+            else{
+                alert('key name or topic id already exist');
+            }
+            
+            //all_devices = JSON.parse(localStorage.getItem('devices'));
             //add_graph(conf,all_devices[0].device_id,'configuration');
         }
     }
@@ -311,8 +370,15 @@
         conf.divID = id;
         device_conf = localStorage.getItem("device_conf");
         device_conf = JSON.parse(device_conf);
+
+        $('#configure_device_control').modal('hide');
+
         for( var i = 0; i < device_conf.length; i++){ 
             if ( device_conf[i].divID === id) {
+                conf.x = device_conf[i].x;
+                conf.y = device_conf[i].y;
+                conf.width = device_conf[i].width;
+                conf.heigth = device_conf[i].heigth;
                 device_conf[i] = conf;
             }
         }
@@ -323,17 +389,31 @@
     }
 
     function select_graph(type) {
+         $('#configured_data_form').trigger("reset");
+         $('#configured_data_form').attr('onsubmit','save_graph_conf()');
         if(type=='column'||type=='line'||type=='gauge-activity-default'){
             $("#add_source_btn").attr('disabled',false);
         }
         else{
             $("#add_source_btn").attr('disabled',true);
         }
+        if(type=='column'||type=='line'||type=='line-time-series-default'){
+            $("#no_of_points").attr('disabled',false);
+        }
+        else{
+            $("#no_of_points").attr('disabled',true);
+        }
         $('#graphType').val(type);
         $('#add_element').modal('hide');
     }
     function configure_device_control(type) {
+        $('#configure_device_form').trigger("reset");
         $('#type').val(type);
+        $('#device_control_topic_id').val('');
+        $('#device_control_key').val('');
+        $('#device_control_title').val('');
+        $('#configure_device_form').attr('onsubmit','save_device_conf()');
+
         if(type=="toogle-switch"){
             $('#device_control_min_val').val(0);
             $('#device_control_min_val').attr("disabled", true);
@@ -360,15 +440,15 @@
             <div class="row">
                 <div class="col-md-4">
                     <label for="topicID">Topic ID:</label>
-                    <input type="text" class="form-control" id="topicID_`+layer_counter+`" name="topicID_`+layer_counter+`">
+                    <input type="number" class="form-control" id="topicID_`+layer_counter+`" name="topicID_`+layer_counter+`" required>
                 </div>
                 <div class="col-md-4">
                     <label for="keyToPlot">Key:</label>
-                    <input type="text" class="form-control" id="keyToPlot_`+layer_counter+`" name="keyToPlot_`+layer_counter+`">
+                    <input type="text" class="form-control" id="keyToPlot_`+layer_counter+`" name="keyToPlot_`+layer_counter+`" required>
                 </div>
                 <div class="col-md-4">
                     <label for="multiplier">Multiplier:</label>
-                    <input type="text" class="form-control" id="multiplier_`+layer_counter+`" name="multiplier_`+layer_counter+`">
+                    <input type="number" class="form-control" id="multiplier_`+layer_counter+`" name="multiplier_`+layer_counter+`" required>
                 </div>
             </div>
         </div>
@@ -386,5 +466,7 @@
         if(localStorage.getItem('token')){
             $("#projectId").val(localStorage.getItem('projectId'));
             $("#token").val(localStorage.getItem('token'));
+            $("#projectID_error").html('');
+            $("#token_error").html('');
         }
     }

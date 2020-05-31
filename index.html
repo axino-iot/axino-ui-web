@@ -53,12 +53,7 @@
         <!-- Sidebar -->
     	<div class="col-md-2 no-padding" id="sidebar_div">
             <div class="sidebar" id="sidebar">
-                <button onclick="get_all_devices_data()" class="btn btn-default" style="font-size: 1.2rem;position:absolute;">
-                    <i class="fa fa-refresh" style="font-size: 1.2rem; color: #aaa;"></i>
-                </button>
-                <button onclick="sidebar_close()" class="btn btn-default btn-block text-right" style="font-size: 1.2rem;">
-                    <i class="fa fa-arrow-circle-left" style="font-size: 1.2rem; color: #aaa;"></i>
-                </button>
+                
             </div>
     	</div>
         
@@ -101,59 +96,33 @@
             window.location.href='config_page.html';
         }
         else {
-            getDevices(localStorage.getItem("projectId"), localStorage.getItem("token"));
-            $.ajax({
-                url: "https://console.axino.co/api/v2/devices?access_token=" + localStorage.getItem("token"),
-                type: 'GET',
-                success: function (devices) {
-                    localStorage.setItem('devices',JSON.stringify(devices));
-                },
-                error: function (err) {
-                    console.log(err);
+            try{
+                getDevices();
+                if(localStorage.getItem('devices')){
+                    update_sidebar(true);
                 }
-            });
+                $.ajax({
+                    url: "https://console.axino.co/api/v2/devices?access_token=" + localStorage.getItem("token"),
+                    type: 'GET',
+                    success: function (devices) {
+                        localStorage.setItem('devices',JSON.stringify(devices));
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                });
+            }
+            catch(error){
+                console.log(error);
+            }
         }
 
         $('.grid-stack').gridstack();
+        update_grid_state();
         Highcharts.charts.forEach(chart=>{
-            chart.reflow();
             try{
-                function noop(){}
-                chart['left_'+chart.id].destroy();
-                chart['right_'+chart.id].destroy();
-                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
-                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
-
-                let g_id = chart.id;
-                let device_id = chart.device_id;
-                let min = chart.min;
-                let max = chart.max;
-                let g_points = chart.g_points;
-                let conf = chart.conf;
-                let data_length = chart.data_length;
-
-                $('.left_'+g_id).click(function() {
-                    min = min-g_points;
-                    max= max-g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min+g_points;
-                        max = max+g_points;
-                    }
-                });
-                $('.right_'+g_id).click(function() {
-                    min = min+g_points;
-                    max = max+g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min-g_points;
-                        max= max-g_points;
-                    }
-                });
+                chart.reflow();
+                regenerate_graph_buttons(chart);
             }
             catch(error){
                 console.log(error);
@@ -169,44 +138,9 @@
         $('#deviceListing').removeClass('col-md-12');
         $('#deviceListing').addClass('col-md-10');
         Highcharts.charts.forEach(chart=>{
-            chart.reflow();
             try{
-                function noop(){}
-                chart['left_'+chart.id].destroy();
-                chart['right_'+chart.id].destroy();
-                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
-                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
-
-                let g_id = chart.id;
-                let device_id = chart.device_id;
-                let min = chart.min;
-                let max = chart.max;
-                let g_points = chart.g_points;
-                let conf = chart.conf;
-                let data_length = chart.data_length;
-
-                $('.left_'+g_id).click(function() {
-                    min = min-g_points;
-                    max= max-g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min+g_points;
-                        max = max+g_points;
-                    }
-                });
-                $('.right_'+g_id).click(function() {
-                    min = min+g_points;
-                    max = max+g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min-g_points;
-                        max= max-g_points;
-                    }
-                });
+                chart.reflow();
+                regenerate_graph_buttons(chart);
             }
             catch(error){
                 console.log(error);
@@ -222,44 +156,9 @@
         $('#deviceListing').removeClass('col-md-10');
         $('#deviceListing').addClass('col-md-12');
         Highcharts.charts.forEach(chart=>{
-            chart.reflow();
             try{
-                function noop(){}
-                chart['left_'+chart.id].destroy();
-                chart['right_'+chart.id].destroy();
-                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
-                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
-
-                let g_id = chart.id;
-                let device_id = chart.device_id;
-                let min = chart.min;
-                let max = chart.max;
-                let g_points = chart.g_points;
-                let conf = chart.conf;
-                let data_length = chart.data_length;
-
-                $('.left_'+g_id).click(function() {
-                    min = min-g_points;
-                    max= max-g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min+g_points;
-                        max = max+g_points;
-                    }
-                });
-                $('.right_'+g_id).click(function() {
-                    min = min+g_points;
-                    max = max+g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min-g_points;
-                        max= max-g_points;
-                    }
-                });
+                chart.reflow();
+                regenerate_graph_buttons(chart);
             }
             catch(error){
                 console.log(error);
@@ -271,49 +170,79 @@
 
     function displayWindowSize(){
         Highcharts.charts.forEach(chart=>{
-            chart.reflow();
             try{
-                function noop(){}
-                chart['left_'+chart.id].destroy();
-                chart['right_'+chart.id].destroy();
-                chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-135 + chart.plotTop, noop).addClass('left_'+chart.id).add();
-                chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-135, noop).addClass('right_'+chart.id).add();
-
-                let g_id = chart.id;
-                let device_id = chart.device_id;
-                let min = chart.min;
-                let max = chart.max;
-                let g_points = chart.g_points;
-                let conf = chart.conf;
-                let data_length = chart.data_length;
-
-                $('.left_'+g_id).click(function() {
-                    min = min-g_points;
-                    max= max-g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min+g_points;
-                        max = max+g_points;
-                    }
-                });
-                $('.right_'+g_id).click(function() {
-                    min = min+g_points;
-                    max = max+g_points;
-                    if(min>=0&&max<=data_length){
-                        update_graph(conf,device_id,min,max);
-                    }
-                    else{
-                        min = min-g_points;
-                        max= max-g_points;
-                    }
-                });
+                chart.reflow();
+                regenerate_graph_buttons(chart);
             }
             catch(error){
                 console.log(error);
             }
         });
     }
+
+    function regenerate_graph_buttons(chart){
+        function noop(){}
+        chart['left_'+chart.id].destroy();
+        chart['right_'+chart.id].destroy();
+        chart['left_'+chart.id] = chart.renderer.button('<', chart.plotLeft - 75, chart.plotHeight-100 + chart.plotTop, noop).addClass('left_'+chart.id).add();
+        chart['right_'+chart.id] = chart.renderer.button('>', chart.plotLeft + chart.plotWidth + 20, chart.plotHeight + chart.plotTop-100, noop).addClass('right_'+chart.id).add();
+
+        let g_id = chart.id;
+        let device_id = chart.device_id;
+        let min = chart.min;
+        let max = chart.max;
+        let g_points = chart.g_points;
+        let conf = chart.conf;
+        let data_length = chart.data_length;
+
+        $('.left_'+g_id).click(function() {
+            if(min>0){
+                min = min-g_points;
+                max = max-g_points;
+                if(min<0){
+                    min=0;
+                    max=min+g_points;
+                }
+                update_graph(conf,device_id,min,max,false);
+            }
+        });
+        $('.right_'+g_id).click(function() {
+            
+            if(max<data_length){
+                min = min+g_points;
+                max = max+g_points;
+                if(max>data_length){
+                    max=data_length;
+                    min=max-g_points;
+                }
+                update_graph(conf,device_id,min,max,false);
+            }
+        });
+    }
+
+    setInterval(function(){
+        try{
+            if(!slider_waiting_event&&!toggler_waiting_event){
+                if (localStorage.getItem('token')&&localStorage.getItem('configured')) {
+                    has_graph = false;
+                    device_conf = JSON.parse(localStorage.getItem('device_conf'));
+
+                    device_conf.forEach(conf=>{
+                        if(conf.type=='graph'){
+                            has_graph = true;
+                        }
+                    });
+
+                    if(has_graph){
+                        get_all_devices_data();
+                    }
+                    getDevices();
+                }
+            }
+        }
+        catch(error){
+            console.log(error);
+        }
+    } , 60000);
 </script>
 </html>

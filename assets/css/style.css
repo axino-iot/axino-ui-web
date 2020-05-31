@@ -311,3 +311,13 @@ input:disabled:hover{
   opacity: 0.7;
   background-color: #ff9900 !important;
 }
+.processfailed{
+  opacity: 1;
+  background-color: #ffbaaf !important;
+}
+
+
+.spinner-border{
+  height: 1rem !important;;
+  width: 1rem !important;
+}
